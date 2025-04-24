@@ -33,13 +33,7 @@ IMAGE_HEIGHT = 320
 IMAGE_SIZE=(IMAGE_WIDTH, IMAGE_HEIGHT)
 IMAGE_CHANNELS = 3
 
-# Path where our data is located - Adjust if necessary
-# Assuming the input data is structured relative to the script or a standard env (like Kaggle)
-# If running locally, ensure this path is correct relative to main.py
-# Example: base_path = "./garbage_classification/" # If the data is in a subdir
-# Or: base_path = "../input/garbage-classification/garbage_classification/" # If running in Kaggle/similar env
-# Use the path provided in the error message if it's correct for your setup
-base_path = "input/garbage-classification/garbage_classification/" # <--- Check if this is correct for your local setup
+base_path = "input/garbage-classification/garbage_classification/"
 
 # Dictionary to save our 12 classes
 categories = {0: 'paper', 1: 'cardboard', 2: 'plastic', 3: 'metal', 4: 'trash', 5: 'battery',
@@ -61,20 +55,20 @@ categories_list = []
 
 # Check if base_path exists before proceeding
 if not os.path.isdir(base_path):
-    print(f"Error: Base path '{base_path}' not found. Please check the path.")
+    print(f"Error: Base path '{base_path}' not found. Please check the path.\n")
     sys.exit(1) # Exit if the base data directory doesn't exist
 
 for category_num, category_name in categories.items():
     folder_path = os.path.join(base_path, category_name)
     if not os.path.isdir(folder_path):
-        print(f"Warning: Directory not found for category '{category_name}' at path '{folder_path}'. Skipping.")
+        print(f"Warning: Directory not found for category '{category_name}' at path '{folder_path}'. Skipping.\n")
         continue
     filenames = os.listdir(folder_path)
     filenames_list.extend(filenames)
     categories_list.extend([category_num] * len(filenames))
 
 if not filenames_list:
-    print(f"Error: No image files found in the subdirectories of '{base_path}'. Please check the data structure.")
+    print(f"Error: No image files found in the subdirectories of '{base_path}'. Please check the data structure.\n")
     sys.exit(1)
 
 df = pd.DataFrame({
@@ -87,7 +81,9 @@ df = add_class_name_prefix(df, 'filename')
 # Shuffle the dataframe
 df = df.sample(frac=1).reset_index(drop=True)
 
-print('number of elements = ' , len(df))
+print('number of elements = ' , len(df), "\n")
+
+print(df.head(5), "\n")
 
 # --- Visualization ---
 df_visualization = df.copy()
@@ -99,16 +95,16 @@ plt.ylabel("Images Count", labelpad=14)
 plt.title("Count of images per class", y=1.02)
 plt.xticks(rotation=45, ha='right') # Rotate labels for readability
 plt.tight_layout() # Adjust layout
-# plt.show() # Display the plot - uncomment if running interactively
+plt.show() # Display the plot - uncomment if running interactively
 
 # --- Model Definition ---
 # Ensure the weights path is correct for your environment
 weights_path = '../input/xception/xception_weights_tf_dim_ordering_tf_kernels_notop.h5'
 if not os.path.exists(weights_path):
-     print(f"Warning: Xception weights file not found at '{weights_path}'. Model will initialize without pre-trained weights.")
+     print(f"Warning: Xception weights file not found at '{weights_path}'. Model will initialize without pre-trained weights.\n")
      weights_path = None # Set to None if file doesn't exist, Xception will use random weights or download if 'imagenet' is specified
 else:
-     print(f"Found Xception weights at '{weights_path}'")
+     print(f"Found Xception weights at '{weights_path}'\n")
 
 
 xception_layer = xception.Xception(include_top=False,
@@ -137,7 +133,7 @@ model.summary()
 # --- Callbacks ---
 early_stop = EarlyStopping(patience=2, verbose=1, monitor='val_categorical_accuracy', mode='max', min_delta=0.001, restore_best_weights=True)
 callbacks = [early_stop]
-print('Callbacks defined!')
+print('Callbacks defined!\n')
 
 # --- Data Splitting ---
 # Change the categories from numbers to names for the generator
@@ -154,7 +150,7 @@ total_train = train_df.shape[0]
 total_validate = validate_df.shape[0]
 total_test = test_df.shape[0]
 
-print(f'train size = {total_train}, validate size = {total_validate}, test size = {total_test}')
+print(f'train size = {total_train}, validate size = {total_validate}, test size = {total_test}\n')
 
 # --- Data Generators ---
 batch_size = 32 # Reduced batch size slightly, maybe helpful if memory is constrained
@@ -228,7 +224,7 @@ if history and history.history: # Check if training happened and history exists
     plt.tight_layout()
     plt.show()
 else:
-    print("Training did not occur or history was not recorded.")
+    print("Training did not occur or history was not recorded.\n")
 
 
 # --- Evaluation ---
@@ -252,13 +248,13 @@ nb_samples = len(filenames)
 if nb_samples > 0:
     # Use model.evaluate instead of evaluate_generator
     loss, accuracy = model.evaluate(test_generator, steps=nb_samples) # Ensure steps covers all samples
-    print(f'Accuracy on test set = {accuracy * 100:.2f}%')
+    print(f'Accuracy on test set = {accuracy * 100:.2f}%\n')
 
     # --- Predictions and Classification Report ---
     # Need generator mapping for report
     gen_label_map = test_generator.class_indices
     gen_label_map_inv = {v: k for k, v in gen_label_map.items()} # Invert map {index: name}
-    print("Generator Label Map:", gen_label_map_inv)
+    print("Generator Label Map:", gen_label_map_inv, "\n")
 
     # Use model.predict instead of predict_generator
     preds_proba = model.predict(test_generator, steps=nb_samples)
@@ -272,10 +268,10 @@ if nb_samples > 0:
 
     # Ensure lengths match
     if len(true_labels) == len(preds_names):
-        print("\nClassification Report:")
-        print(classification_report(true_labels, preds_names))
+        print("\nClassification Report:\n")
+        print(classification_report(true_labels, preds_names), "\n")
     else:
-        print(f"Error: Mismatch in number of true labels ({len(true_labels)}) and predictions ({len(preds_names)}).")
+        print(f"Error: Mismatch in number of true labels ({len(true_labels)}) and predictions ({len(preds_names)}).\n")
 
 else:
-    print("Test generator is empty. Skipping evaluation and prediction.")
+    print("Test generator is empty. Skipping evaluation and prediction.\n")
