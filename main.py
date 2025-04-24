@@ -99,12 +99,12 @@ plt.show() # Display the plot - uncomment if running interactively
 
 # --- Model Definition ---
 # Ensure the weights path is correct for your environment
-weights_path = '../input/xception/xception_weights_tf_dim_ordering_tf_kernels_notop.h5'
+weights_path = 'input/xception/xception_weights_tf_dim_ordering_tf_kernels_notop.h5'
 if not os.path.exists(weights_path):
      print(f"Warning: Xception weights file not found at '{weights_path}'. Model will initialize without pre-trained weights.\n")
      weights_path = None # Set to None if file doesn't exist, Xception will use random weights or download if 'imagenet' is specified
 else:
-     print(f"Found Xception weights at '{weights_path}'\n")
+     print(f"Found Xception weights.'\n")
 
 
 xception_layer = xception.Xception(include_top=False,
