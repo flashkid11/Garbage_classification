@@ -1,3 +1,6 @@
 input/garbage-classification/garbage_classification/
 input/
 venv
+cuda-*
+libnvinfer*
+nvidia*
